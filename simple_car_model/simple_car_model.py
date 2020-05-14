@@ -80,8 +80,8 @@ if clientID!=-1:
     car.clientID = clientID
 
     #car.square()
-    car.run()
-
+    #car.run()
+    car.mapping_run()
 
 
 
