@@ -5,7 +5,7 @@ from map import Map
 
 
 try:
-    import sim
+    from api import sim
 except:
     print ('--------------------------------------------------------------')
     print ('"sim.py" could not be imported. This means very probably that')
@@ -21,7 +21,7 @@ class Car:
     
 
     def __init__(self):
-        print("dsdsdsd")
+        #print("dsdsdsd")
         self.target_velocity = 1
         self.stop_velocity = 0
 
@@ -29,12 +29,30 @@ class Car:
         self.turning_time = 1.80
 
         self.rotation_force = 100
-        self.map = Map(13, 13, [12, 8])
+        #self.map = Map(13, 13, [12, 8])#old labirynth01
+        self.map = Map(10, 10, [8, 6])#new labirynth02
         self.clientID = 0
 
         self.sensors = []
         self.wheels = []
 
+        self.cell_size = 1
+        self.cell_size_half = 0.5
+
+    def sensor_test(self):
+        frontSensor = self.sensors[0]
+        leftSensor = self.sensors[5]
+        rightSensor = self.sensors[4]
+        while True:
+            print("right = " + str(self.sensorDistance(rightSensor)))
+            print("left  = " + str(self.sensorDistance(leftSensor)))
+            print("front = " + str(self.sensorDistance(frontSensor)))
+            time.sleep(1)
+
+    def is_correct(self, measured_distance):
+        if measured_distance > 0 :
+            return True
+        return False
 
     def mapping_run(self):
         direction = [-1, 0]
@@ -47,27 +65,38 @@ class Car:
             print("rotate till sensor front clear")
             leftSensorDistance = self.sensorDistance(leftSensor)
             rightSensorDistance = self.sensorDistance(rightSensor)
-            print("frontSensor = " + str(self.sensorDistance(frontSensor)))
+            frontSensorDistance = self.sensorDistance(frontSensor)
+            print("frontSensor = " + str(frontSensorDistance))
             print("rightSensor = " + str(rightSensorDistance))
             print("leftSensor  = " + str(leftSensorDistance))
             #rotate left if right sensor detects
-            if self.sensorDistance(rightSensor) < 0.001 or self.sensorDistance(rightSensor) > 1:
-                while self.sensorDistance(frontSensor) < 0.5 and self.sensorDistance(frontSensor) > 0.001:
-                    self.rotateCarByDeg(90, 2)
-                    direction = self.set_direction(direction, 1)
-            elif self.sensorDistance(leftSensor) < 0.001 or self.sensorDistance(leftSensor) > 1:
-                while self.sensorDistance(frontSensor) < 0.5 and self.sensorDistance(frontSensor) > 0.001:
-                    self.rotateCarByDeg(-90, 2)
+            if rightSensorDistance > 0:#right sensor detected sth; rotate left
+                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:#while front sensor detects
+                    self.rotate_left()
                     direction = self.set_direction(direction, -1)
-            else:
-                while self.sensorDistance(frontSensor) < 0.5 and self.sensorDistance(frontSensor) > 0.001:
-                    rotationError = 9999
-                    while rotationError > 181:
-                        rotationError = self.rotateCarByDegMap(90, 2)
+                    frontSensorDistance = self.sensorDistance(frontSensor)
+            elif leftSensorDistance > 0:#left sensor detected sth; rotate right
+                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:
+                    self.rotate_right()
                     direction = self.set_direction(direction, 1)
+                    frontSensorDistance = self.sensorDistance(frontSensor)
+            else:#both right and left sensors detected (concluded)
+                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:
+                    #rotationError = 9999
+                    #while rotationError > 181:
+                    #    rotationError = self.rotateCarByDegMap(90, 2)
+                    direction = self.set_direction(direction, 1)
+                    frontSensorDistance = self.sensorDistance(frontSensor)
 
             #rotate right if left sensor detects
+    def rotate_left(self):
+        self.rotateCarByDeg(-90, 2)
+
+    def rotate_right(self):
+        self.rotateCarByDeg(90, 2)
     
+    def rotate_180(self):
+        self.rotateCarByDeg(180, 2)
 
 
     def run(self):
@@ -147,8 +176,12 @@ class Car:
 
     def sensorDistance(self, sensor):
         return_value, detectionState, detectionPoint, detectedObjectHandle, detectedSurfaceNormalVector = sim.simxReadProximitySensor(self.clientID, sensor, sim.simx_opmode_blocking)
+        #print("detectionState = " + str(detectionState))
+        if detectionState == False:
+            distance = -1
+        else:
+            distance = math.sqrt(detectionPoint[0]*detectionPoint[0] + detectionPoint[1]*detectionPoint[1] + detectionPoint[2]*detectionPoint[2])
         
-        distance = math.sqrt(detectionPoint[0]*detectionPoint[0] + detectionPoint[1]*detectionPoint[1] + detectionPoint[2]*detectionPoint[2])
         return distance
         
         
@@ -383,7 +416,7 @@ class Car:
     def goForwardTillSensorDetectMap(self, speed, frontSensor, leftSensor, rightSensor, walldistance, direction):
         while(True):
             frontDistance = self.sensorDistance(frontSensor)          
-            if frontDistance < walldistance and frontDistance > 0.001 :
+            if frontDistance < walldistance and frontDistance > 0 :
                 self.map.set_forward_value(direction)
                 break
             else:

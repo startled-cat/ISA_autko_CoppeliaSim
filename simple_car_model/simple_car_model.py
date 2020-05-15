@@ -13,8 +13,9 @@ import numpy as np
 
 from car import Car
 
+
 try:
-    import sim
+    from api import sim
 except:
     print ('--------------------------------------------------------------')
     print ('"sim.py" could not be imported. This means very probably that')
@@ -23,6 +24,7 @@ except:
     print ('or appropriately adjust the file "sim.py"')
     print ('--------------------------------------------------------------')
     print ('')
+    
 
 
 import time
@@ -82,7 +84,7 @@ if clientID!=-1:
     #car.square()
     #car.run()
     car.mapping_run()
-
+    #car.sensor_test()
 
 
     # Before closing the connection to CoppeliaSim, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
