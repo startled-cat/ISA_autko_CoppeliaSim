@@ -97,46 +97,46 @@ class Map:
 	def check_value(self, direction, frontSensorDistance, leftSensorDistance, rightSensorDistance):
 		# when go up
 		if direction[0] == -1:
-			if frontSensorDistance < 0.001:
+			if frontSensorDistance < 0.001 or frontSensorDistance > 1:
 				if self.maze[self.currentPosition[0]-1, self.currentPosition[1]] == 0:
 					return 1
-			if leftSensorDistance < 0.001:
+			if leftSensorDistance < 0.001 or leftSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]-1] == 0:
 					return 2
-			if rightSensorDistance < 0.001:
+			if rightSensorDistance < 0.001 or rightSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]+1] == 0:
 					return 3
 		# when go down
 		if direction[0] == 1:
-			if frontSensorDistance < 0.001:
+			if frontSensorDistance < 0.001 or frontSensorDistance > 1:
 				if self.maze[self.currentPosition[0]+1, self.currentPosition[1]] == 0:
 					return 1
-			if leftSensorDistance < 0.001:
+			if leftSensorDistance < 0.001 or leftSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]+1] == 0:
 					return 2
-			if rightSensorDistance < 0.001:
+			if rightSensorDistance < 0.001 or rightSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]-1] == 0:
 					return 3
 		# when go left
 		if direction[1] == -1:
-			if frontSensorDistance < 0.001:
+			if frontSensorDistance < 0.001 or frontSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]-1] == 0:
 					return 1
-			if leftSensorDistance < 0.001:
+			if leftSensorDistance < 0.001 or leftSensorDistance > 1:
 				if self.maze[self.currentPosition[0]+1, self.currentPosition[1]] == 0:
 					return 2
-			if rightSensorDistance < 0.001:
+			if rightSensorDistance < 0.001 or rightSensorDistance > 1:
 				if self.maze[self.currentPosition[0]-1, self.currentPosition[1]] == 0:
 					return 3
 		# when go right
 		if direction[1] == 1:
-			if frontSensorDistance < 0.001:
+			if frontSensorDistance < 0.001 or frontSensorDistance > 1:
 				if self.maze[self.currentPosition[0], self.currentPosition[1]+1] == 0:
 					return 1
-			if leftSensorDistance < 0.001:
+			if leftSensorDistance < 0.001 or leftSensorDistance > 1:
 				if self.maze[self.currentPosition[0]-1, self.currentPosition[1]] == 0:
 					return 2
-			if rightSensorDistance < 0.001:
+			if rightSensorDistance < 0.001 or rightSensorDistance > 1:
 				if self.maze[self.currentPosition[0]+1, self.currentPosition[1]] == 0:
 					return 3
 			

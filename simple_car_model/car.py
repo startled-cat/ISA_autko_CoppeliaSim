@@ -51,11 +51,11 @@ class Car:
             print("rightSensor = " + str(rightSensorDistance))
             print("leftSensor  = " + str(leftSensorDistance))
             #rotate left if right sensor detects
-            if self.sensorDistance(rightSensor) < 0.001:
+            if self.sensorDistance(rightSensor) < 0.001 or self.sensorDistance(rightSensor) > 1:
                 while self.sensorDistance(frontSensor) < 0.5 and self.sensorDistance(frontSensor) > 0.001:
                     self.rotateCarByDeg(90, 2)
                     direction = self.set_direction(direction, 1)
-            elif self.sensorDistance(leftSensor) < 0.001:
+            elif self.sensorDistance(leftSensor) < 0.001 or self.sensorDistance(leftSensor) > 1:
                 while self.sensorDistance(frontSensor) < 0.5 and self.sensorDistance(frontSensor) > 0.001:
                     self.rotateCarByDeg(-90, 2)
                     direction = self.set_direction(direction, -1)
