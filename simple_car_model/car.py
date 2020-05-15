@@ -2,7 +2,7 @@ import math
 import numpy as np
 import time
 from map import Map
-
+from direction import Direction
 
 try:
     from api import sim
@@ -20,7 +20,7 @@ class Car:
 
     
 
-    def __init__(self):
+    def __init__(self, sensors, wheels, carBody, clientID):
         #print("dsdsdsd")
         self.target_velocity = 1
         self.stop_velocity = 0
@@ -31,13 +31,44 @@ class Car:
         self.rotation_force = 100
         #self.map = Map(13, 13, [12, 8])#old labirynth01
         self.map = Map(10, 10, [8, 6])#new labirynth02
-        self.clientID = 0
+        #self.clientID = 0
 
-        self.sensors = []
-        self.wheels = []
+        self.sensors = sensors
+        self.wheels = wheels
+        self.clientID = clientID
+        self.carBody = carBody
 
         self.cell_size = 1
         self.cell_size_half = 0.5
+
+        self.rotation_speed = 2
+        self.rotation_error = 0.1
+
+        self.frontSensor = self.sensors[0]
+        self.leftSensor = self.sensors[5]
+        self.rightSensor = self.sensors[4]
+
+        self.direction = self.get_car_direction()
+
+    def random_test(self):
+
+        i = 0
+        while i < 4:
+            self.rotate_right()
+            print(str(self.getCarHorizontalAngle()) + " > " + str(self.get_car_direction()))
+            i += 1
+            time.sleep(1)
+
+        i = 0
+        while i < 4:
+            self.rotate_left()
+            print(str(self.getCarHorizontalAngle()) + " > " + str(self.get_car_direction()))
+            i += 1
+            time.sleep(1)
+        
+        
+        #print("======================")
+        #time.sleep(3)
 
     def sensor_test(self):
         frontSensor = self.sensors[0]
@@ -55,48 +86,121 @@ class Car:
         return False
 
     def mapping_run(self):
-        direction = [-1, 0]
-        frontSensor = self.sensors[0]
-        leftSensor = self.sensors[5]
-        rightSensor = self.sensors[4]
+        direction = [-1, 0]#Direction.North.value
+        # frontSensor = self.sensors[0]
+        # leftSensor = self.sensors[5]
+        # rightSensor = self.sensors[4]
         while True:
             
-            direction = self.goForwardTillSensorDetectMap(5, frontSensor, leftSensor, rightSensor, 0.8, direction)
+            direction = self.goForwardTillSensorDetectMap(5, 0.8, direction)
             print("rotate till sensor front clear")
-            leftSensorDistance = self.sensorDistance(leftSensor)
-            rightSensorDistance = self.sensorDistance(rightSensor)
-            frontSensorDistance = self.sensorDistance(frontSensor)
+            leftSensorDistance = self.sensorDistance(self.leftSensor)
+            rightSensorDistance = self.sensorDistance(self.rightSensor)
+            frontSensorDistance = self.sensorDistance(self.frontSensor)
             print("frontSensor = " + str(frontSensorDistance))
             print("rightSensor = " + str(rightSensorDistance))
             print("leftSensor  = " + str(leftSensorDistance))
             #rotate left if right sensor detects
             if rightSensorDistance > 0:#right sensor detected sth; rotate left
-                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:#while front sensor detects
+                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):#while front sensor detects
                     self.rotate_left()
                     direction = self.set_direction(direction, -1)
-                    frontSensorDistance = self.sensorDistance(frontSensor)
+                    frontSensorDistance = self.sensorDistance(self.frontSensor)
             elif leftSensorDistance > 0:#left sensor detected sth; rotate right
-                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:
+                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):
                     self.rotate_right()
                     direction = self.set_direction(direction, 1)
-                    frontSensorDistance = self.sensorDistance(frontSensor)
+                    frontSensorDistance = self.sensorDistance(self.frontSensor)
             else:#both right and left sensors detected (concluded)
-                while frontSensorDistance < (self.cell_size_half+0.1) and frontSensorDistance > 0:
+                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):
                     #rotationError = 9999
                     #while rotationError > 181:
                     #    rotationError = self.rotateCarByDegMap(90, 2)
                     direction = self.set_direction(direction, 1)
-                    frontSensorDistance = self.sensorDistance(frontSensor)
+                    frontSensorDistance = self.sensorDistance(self.frontSensor)
 
             #rotate right if left sensor detects
     def rotate_left(self):
-        self.rotateCarByDeg(-90, 2)
+        current_car_direction = self.get_car_direction()
+
+        if current_car_direction == Direction.NORTH:
+            self.rotate_car_to_direction(Direction.WEST)
+            self.direction = Direction.WEST.value
+
+        if current_car_direction == Direction.WEST:
+            self.rotate_car_to_direction(Direction.SOUTH)
+            self.direction = Direction.SOUTH.value
+
+        if current_car_direction == Direction.SOUTH:
+            self.rotate_car_to_direction(Direction.EAST)
+            self.direction = Direction.EAST.value
+
+        if current_car_direction == Direction.EAST:
+            self.rotate_car_to_direction(Direction.NORTH)
+            self.direction = Direction.NORTH.value
+
 
     def rotate_right(self):
-        self.rotateCarByDeg(90, 2)
-    
+        current_car_direction = self.get_car_direction()
+
+        if current_car_direction == Direction.NORTH:
+            self.rotate_car_to_direction(Direction.EAST)
+            self.direction = Direction.EAST.value
+
+        if current_car_direction == Direction.WEST:
+            self.rotate_car_to_direction(Direction.NORTH)
+            self.direction = Direction.NORTH.value
+
+        if current_car_direction == Direction.SOUTH:
+            self.rotate_car_to_direction(Direction.WEST)
+            self.direction = Direction.WEST.value
+
+        if current_car_direction == Direction.EAST:
+            self.rotate_car_to_direction(Direction.SOUTH)
+            self.direction = Direction.SOUTH.value
+        
     def rotate_180(self):
-        self.rotateCarByDeg(180, 2)
+        current_car_direction = self.get_car_direction()
+
+        if current_car_direction == Direction.NORTH:
+            self.rotate_car_to_direction(Direction.SOUTH)
+            self.direction = Direction.SOUTH.value
+
+        if current_car_direction == Direction.WEST:
+            self.rotate_car_to_direction(Direction.EAST)
+            self.direction = Direction.EAST.value
+
+        if current_car_direction == Direction.SOUTH:
+            self.rotate_car_to_direction(Direction.NORTH)
+            self.direction = Direction.NORTH.value
+
+        if current_car_direction == Direction.EAST:
+            self.rotate_car_to_direction(Direction.WEST)
+            self.direction = Direction.WEST.value
+
+    def rotate_car_to_direction(self, direction):
+
+        if direction == Direction.NORTH:
+            self.rotateCarToDeg(0, self.rotation_speed, self.rotation_error)
+            self.direction = Direction.NORTH.value
+
+        if direction == Direction.WEST:
+            self.rotateCarToDeg(90, self.rotation_speed, self.rotation_error)
+            self.direction = Direction.WEST.value
+
+        if direction == Direction.SOUTH:
+            self.rotateCarToDeg(180, self.rotation_speed, self.rotation_error)
+            self.direction = Direction.SOUTH.value
+
+        if direction == Direction.EAST:
+            self.rotateCarToDeg(-90, self.rotation_speed, self.rotation_error)
+            self.direction = Direction.EAST.value
+
+
+    def get_car_direction(self):
+        angle = self.getCarHorizontalAngle()
+        self.direction = Direction.get_direction_from_angle(angle).value
+        return Direction.get_direction_from_angle(angle)
 
 
     def run(self):
@@ -217,7 +321,7 @@ class Car:
     def getCarHorizontalAngle(self):
         return_value, eulerAngles = sim.simxGetObjectOrientation(self.clientID, self.carBody, -1, sim.simx_opmode_oneshot)
         angle = eulerAngles[2] * 180 / math.pi
-        self.detect_object_quick()
+        #self.detect_object_quick()
         return angle
 
     def rotateCarByDegMap(self, degrees, speed):
@@ -276,14 +380,15 @@ class Car:
             return
 
         if degrees < 0:
-            print("rotate left")
+            #print("rotate left")
             speed = -speed
             degrees = abs(degrees)
         else:
-            print("rotate right")
+            pass
+            #print("rotate right")
 
         starting_angle = self.getCarHorizontalAngle()
-        print(starting_angle)
+        #print(starting_angle)
         #start rotating
         self.set_wheels_velocity(speed, -speed)
         #print("starting to rotate ...")
@@ -321,10 +426,10 @@ class Car:
 
             
             #time.sleep(0.050)
-        print("rotated car from {0}, to {1} deg, error={2}".format(starting_angle, self.getCarHorizontalAngle(), abs(starting_angle - self.getCarHorizontalAngle())-degrees ))
+        #print("rotated car from {0}, to {1} deg, error={2}".format(starting_angle, self.getCarHorizontalAngle(), abs(starting_angle - self.getCarHorizontalAngle())-degrees ))
 
     def rotateCarToDeg(self, degree, speed, error):
-        print("rotating from {0}, to {1} ...".format(self.getCarHorizontalAngle(), degree))
+        #print("rotateCarToDeg: rotating from {0}, to {1} ...".format(self.getCarHorizontalAngle(), degree))
 
         starting_angle = self.getCarHorizontalAngle()
 
@@ -344,10 +449,10 @@ class Car:
             speed = -speed
             rotateLeft = not rotateLeft
         
-        if rotateLeft:
-            print("rotate left")
-        else:
-            print("rotate right")
+        # if rotateLeft:
+        #     print("rotateCarToDeg: rotate left")
+        # else:
+        #     print("rotateCarToDeg: rotate right")
 
         
         #start rotating
@@ -355,7 +460,7 @@ class Car:
         #print("starting to rotate ...")
         
         while(True):
-            self.detect_object(self.sensors[0], 1)
+            #self.detect_object(self.sensors[0], 1)
             
             difference = degree - self.getCarHorizontalAngle()
             if difference > 180:
@@ -395,7 +500,7 @@ class Car:
                     self.set_wheels_velocity(speed/4, -speed/4)
                     continue
         
-        print("rotated car from {0}, to {1}, target={2}".format(starting_angle, self.getCarHorizontalAngle(), degree ))
+        #print("rotateCarToDeg: rotated car from {0}, to {1}, target={2}".format(starting_angle, self.getCarHorizontalAngle(), degree ))
 
     def getCarPosition(self):
         return_value, pos = sim.simxGetObjectPosition(self.clientID, self.carBody, -1, sim.simx_opmode_oneshot)
@@ -413,56 +518,57 @@ class Car:
                 self.set_wheels_velocity(speed, speed)
         self.set_wheels_velocity(0, 0)
 
-    def goForwardTillSensorDetectMap(self, speed, frontSensor, leftSensor, rightSensor, walldistance, direction):
+    def goForwardTillSensorDetectMap(self, speed, walldistance, direction):
         while(True):
-            frontDistance = self.sensorDistance(frontSensor)          
-            if frontDistance < walldistance and frontDistance > 0 :
+            frontDistance = self.sensorDistance(self.frontSensor)          
+            if frontDistance < walldistance and self.is_correct(frontDistance) :
                 self.map.set_forward_value(direction)
                 break
             else:
-                error = self.goForwardMap(5, 1, 0.001)
+                error = self.goForwardMap(5, self.cell_size, 0.001)
                 if error > -0.001 and error < 0.001:
-                    leftSensorDistance = self.sensorDistance(leftSensor)
-                    rightSensorDistance = self.sensorDistance(rightSensor)
+                    leftSensorDistance = self.sensorDistance(self.leftSensor)
+                    rightSensorDistance = self.sensorDistance(self.rightSensor)
                     #print("Go Forward")  
                     self.map.set_values(direction, leftSensorDistance, rightSensorDistance)
                     returnCode = self.map.check_value(direction, frontDistance, leftSensorDistance, rightSensorDistance)
-                    if returnCode == 1:
+                    if returnCode == 1:# can go further straight
                         continue
                     if returnCode == 2:
                         print("returned 2")
                         rotationError = 9999
                         while rotationError > 181:
-                            rotationError = self.rotateCarByDegMap(-90, 2)
+                            rotationError = self.rotateCarByDegMap(-90, 2)# todo: fix, use directions
                         direction = self.set_direction(direction, -1)
                         break
                     if returnCode == 3:
                         print("returned 3")
                         rotationError = 9999
                         while rotationError > 181:
-                            rotationError = self.rotateCarByDegMap(90, 2)
+                            rotationError = self.rotateCarByDegMap(90, 2)# todo: fix, use directions
                         direction = self.set_direction(direction, 1)
                         break
         self.set_wheels_velocity(0, 0)
         return direction
 
-    def goForwardMap(self, speed, distance, error):
+    def goForwardMap(self, speed, distance_to_travel, error):
         startingPosition = self.getCarPosition()
         self.set_wheels_velocity(speed, speed)
         #print("starting to move with speed {0}".format(speed))
         while(True):
             newPosition = self.getCarPosition()
             diff = [startingPosition[0] - newPosition[0], startingPosition[1] - newPosition[1]]
-            d = math.sqrt(diff[0]*diff[0] + diff[1]*diff[1])
-            #print("startingPosition= {0}, new = {1}, diff = {2}, d = {3}".format(startingPosition, newPosition, diff, d))
-            if distance - d < error :
+            traveled_distance = math.sqrt(diff[0]*diff[0] + diff[1]*diff[1])
+            #print(" ... startingPosition= {0}, new = {1}, diff = {2}, d = {3}".format(startingPosition, newPosition, diff, traveled_distance))
+            #print(" ... distance_to_travel - traveled_distance = " + str(distance_to_travel - traveled_distance))
+            if distance_to_travel - traveled_distance < error :
                 self.set_wheels_velocity(0, 0)
-                print("stopped, error = {0}".format(d - distance))
-                return d - distance
-            if distance - d < 0.01 :
+                #print("stopped, error = {0}".format(traveled_distance - distance_to_travel))
+                return traveled_distance - distance_to_travel
+            if distance_to_travel - traveled_distance < 0.01 :
                 self.set_wheels_velocity(speed/4, speed/4)
                 continue
-            if distance - d < 0.1 :
+            if distance_to_travel - traveled_distance < 0.1 :
                 self.set_wheels_velocity(speed/2, speed/2)
                 continue
 
