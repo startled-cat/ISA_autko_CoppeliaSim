@@ -9,6 +9,19 @@ except:
     print("=================================")
 
 class CellType(Enum):
-    UNDISCOVERED = 0
-    CLEAR = 1
-    BLOCKED = 2
+    UNKNOWN = 0 # dont know whats there
+    DISCOVERED = 1 # already been on this tile
+    BLOCKED = 2 # is wall
+    CLEAR = 3 # seen that its clear but never been there
+
+    @staticmethod
+    def get_celltype_from_value(value):
+        if value == 0 :
+            return CellType.UNKNOWN
+        if value == 1 :
+            return CellType.DISCOVERED
+        if value == 2 :
+            return CellType.BLOCKED
+        if value == 3 :
+            return CellType.CLEAR
+        return -1

@@ -15,6 +15,10 @@ class Direction(Enum):
     WEST = [0, -1]
     UNKNOWN = [0, 0]
 
+    FORWARD = 1
+    LEFT = 2
+    RIGHT = 3
+
     @staticmethod
     def get_direction_from_angle(angle):
         if angle > 80 and angle < 100:
