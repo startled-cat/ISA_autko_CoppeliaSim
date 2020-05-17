@@ -18,6 +18,7 @@ class Direction(Enum):
     FORWARD = 1
     LEFT = 2
     RIGHT = 3
+    BACKWARD = 4
 
     @staticmethod
     def get_direction_from_angle(angle):
@@ -31,4 +32,14 @@ class Direction(Enum):
             return Direction.SOUTH
         return Direction.UNKNOWN
 
-    
+    @staticmethod
+    def get_direction_from_vector(vector):
+        if vector == [0, -1]:
+            return Direction.WEST
+        if vector == [0, 1]:
+            return Direction.EAST
+        if vector == [-1, 0]:
+            return Direction.NORTH
+        if vector == [1, 0]:
+            return Direction.SOUTH
+        return Direction.UNKNOWN

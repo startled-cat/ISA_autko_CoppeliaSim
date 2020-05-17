@@ -35,9 +35,9 @@ class Map:
                     if cell == CellType.UNKNOWN.value:
                         s = s + "  "
                     elif cell == CellType.DISCOVERED.value:
-                        s = s + "* "
+                        s = s + "o "
                     elif cell == CellType.BLOCKED.value:
-                        s = s + "# "
+                        s = s + "##"
                     elif cell == CellType.CLEAR.value:
                         s = s + ". "
                     else:
@@ -87,11 +87,15 @@ class Map:
             self.currentPosition[1] = self.currentPosition[1] - 1
 
     def set_values(self, direction, leftSensorDistance, rightSensorDistance, frontSensorDistance):
-        print("Hello Its me, from the other side")
+        print("Hello Its me, from the other side, updating map ...")
+        print("direction = " + str(Direction.get_direction_from_vector(direction)))
+        print("leftSensorDistance = " + str(leftSensorDistance))
+        print("frontSensorDistance = " + str(frontSensorDistance))
+        print("rightSensorDistance = " + str(rightSensorDistance))
         # when go up
         if direction[0] == -1:
             #set first values
-            print("UP")
+            #print("UP")
             #self.currentPosition[0] = self.currentPosition[0] - 1
             self.maze[self.currentPosition[0], self.currentPosition[1]] = CellType.DISCOVERED.value
             
@@ -116,7 +120,7 @@ class Map:
         #when go down
         if direction[0] == 1:
             #set first values
-            print("DOWN")
+            #print("DOWN")
             #self.currentPosition[0] = self.currentPosition[0] + 1
             self.maze[self.currentPosition[0], self.currentPosition[1]] = CellType.DISCOVERED.value
 
@@ -141,7 +145,7 @@ class Map:
         #when go right
         if direction[1] == 1:
             #set first values
-            print("RIGHT")
+            #print("RIGHT")
             #self.currentPosition[1] = self.currentPosition[1] + 1
             self.maze[self.currentPosition[0], self.currentPosition[1]] = CellType.DISCOVERED.value
 
@@ -167,7 +171,7 @@ class Map:
         #when go left
         if direction[1] == -1:
             #set first values
-            print("LEFT")
+            #print("LEFT")
             #self.currentPosition[1] = self.currentPosition[1] - 1
             self.maze[self.currentPosition[0], self.currentPosition[1]] = CellType.DISCOVERED.value
 
