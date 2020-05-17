@@ -39,8 +39,10 @@ class Car:
         self.cell_size = 1
         self.cell_size_half = 0.5
 
-        self.rotation_speed = 2
-        self.rotation_error = 0.1
+        self.travel_speed = 10
+
+        self.rotation_speed = 5
+        self.rotation_error = 0.5
 
         self.frontSensor = self.sensors[0]
         self.leftSensor = self.sensors[5]
@@ -84,106 +86,91 @@ class Car:
         return False
 
     def mapping_run(self):
-        direction = [-1, 0]#Direction.North.value
-        # frontSensor = self.sensors[0]
-        # leftSensor = self.sensors[5]
-        # rightSensor = self.sensors[4]
+
+        self.get_car_direction()
+        self.map.set_values(self.direction, self.sensorDistance(self.leftSensor), self.sensorDistance(self.rightSensor), self.sensorDistance(self.frontSensor))
         while True:
-            
-            direction = self.goForwardTillSensorDetectMap(5, 0.8, direction)
-            print("decide where to go : rotate till sensor front clear")
-            leftSensorDistance = self.sensorDistance(self.leftSensor)
-            rightSensorDistance = self.sensorDistance(self.rightSensor)
-            frontSensorDistance = self.sensorDistance(self.frontSensor)
-            print("frontSensor = " + str(frontSensorDistance))
-            print("rightSensor = " + str(rightSensorDistance))
-            print("leftSensor  = " + str(leftSensorDistance))
+            print("================================")
+            print("      decide where to go ")
             #DECIDE WHERE TO GO: 
-            self.get_car_direction()
+            self.get_car_direction()#should not be necesary, bc car should not rotate before
+            
+            if self.map.is_all_discovered() == True:
+                print("map discovered")
+                break
+
             forward = self.map.check(self.direction, Direction.FORWARD)
             left = self.map.check(self.direction, Direction.LEFT)
             right = self.map.check(self.direction, Direction.RIGHT)
-
-            if left == CellType.BLOCKED and right == CellType.BLOCKED and forward == CellType.BLOCKED:
-                #gotta go back
-                self.rotate_180()
-                continue
+            print("left        forward         right")
+            print(str(left) + " " + str(forward) + " " + str(right))
 
             if forward == CellType.CLEAR :
                 #must go forward
-                continue
-
-            if forward == CellType.DISCOVERED :
+                print("forward clear, go straight")
+                #continue
+            elif left == CellType.BLOCKED and right == CellType.BLOCKED and forward == CellType.BLOCKED:
+                #gotta go back
+                print("all blocked, go back")
+                self.rotate_180()
+                #continue
+            elif forward == CellType.DISCOVERED :
                 #been forward, try left or roght, worst case scenario go straight
+                #TODO if both left and right clear: random choice
                 if left == CellType.CLEAR:
                     #never been there, go left
+                    print("front discovered but left clear, go left")
                     self.rotate_left()
-                    continue
-                if right == CellType.CLEAR:
+                    #continue
+                elif right == CellType.CLEAR:
                     #never been there, go right
+                    print("front discovered but right clear, go right")
                     self.rotate_right()
-                    continue
-
-                if left == CellType.BLOCKED and right == CellType.BLOCKED:
+                    #continue
+                elif left == CellType.BLOCKED and right == CellType.BLOCKED:
                     #already been forward, but no other way
-                    continue
-
-                if left == CellType.BLOCKED:
+                    print("left and right blocked, already been forward but no other way, go straight")
+                    #continue
+                elif left == CellType.BLOCKED:
                     #never been there, go left
+                    print("been forward, left blocked, go right")
                     self.rotate_right()
-                    continue
-                if right == CellType.BLOCKED:
+                    #continue
+                elif right == CellType.BLOCKED:
                     #never been there, go right
+                    print("been forward, right blocked, go left")
                     self.rotate_left()
-                    continue
-                continue
-
-            if forward == CellType.BLOCKED:
+                    #continue
+                #all discovered #TODO if all discovered choice at random
+                print("all discovered but go straight")
+                #continue
+            elif forward == CellType.BLOCKED:
+                #TODO if both left and right clear then choice at random
                 if left == CellType.CLEAR:
                     #never been there, go left
+                    print("forward blocked, left clear, go left")
                     self.rotate_left()
-                    continue
-                if right == CellType.CLEAR:
+                    #continue
+                elif right == CellType.CLEAR:
                     #never been there, go right
+                    print("forward blocked, right clear, go right")
                     self.rotate_right()
-                    continue
-
-                if left == CellType.DISCOVERED:
+                    #continue
+                elif left == CellType.DISCOVERED:
                     #never been there, go left
+                    print("forward blocked, l+r not clear, already been left, go left")
                     self.rotate_left()
-                    continue
-                if right == CellType.DISCOVERED:
+                    #continue
+                elif right == CellType.DISCOVERED:
                     #never been there, go right
+                    print("forward blocked, l+r not clear, already been right, go right")
                     self.rotate_right()
-                    continue
-            #should not come to this point
-            while True:
-                print("i dont know what do do, hlep human!")
-                print("left = " + str(left))
-                print("right = " + str(right))
-                print("forward = " + str(forward))
-                time.sleep(3600)
-            '''
-            # #rotate left if right sensor detects
-            if rightSensorDistance > 0:#right sensor detected sth; rotate left
-                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):#while front sensor detects
-                    self.rotate_left()
-                    direction = self.set_direction(direction, -1)
-                    frontSensorDistance = self.sensorDistance(self.frontSensor)
-            elif leftSensorDistance > 0:#left sensor detected sth; rotate right
-                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):
-                    self.rotate_right()
-                    direction = self.set_direction(direction, 1)
-                    frontSensorDistance = self.sensorDistance(self.frontSensor)
-            else:#both right and left sensors detected (concluded)
-                while frontSensorDistance < (self.cell_size_half+0.25) and self.is_correct(frontSensorDistance):
-                    #rotationError = 9999
-                    #while rotationError > 181:
-                    #    rotationError = self.rotateCarByDegMap(90, 2)
-                    direction = self.set_direction(direction, 1)
-                    frontSensorDistance = self.sensorDistance(self.frontSensor)
-            '''
-            #rotate right if left sensor detects
+                    #continue
+            
+            #go
+            self.goForwardTillSensorDetectMap(self.travel_speed, 0.8, self.direction)
+            
+
     
     def rotate_left(self):
         current_car_direction = self.get_car_direction()
@@ -225,21 +212,22 @@ class Car:
         
     def rotate_180(self):
         current_car_direction = self.get_car_direction()
-
+        self.rotate_right()
+        self.rotate_right()
         if current_car_direction == Direction.NORTH:
-            self.rotate_car_to_direction(Direction.SOUTH)
+            #self.rotate_car_to_direction(Direction.SOUTH)
             self.direction = Direction.SOUTH.value
 
         if current_car_direction == Direction.WEST:
-            self.rotate_car_to_direction(Direction.EAST)
+            #self.rotate_car_to_direction(Direction.EAST)
             self.direction = Direction.EAST.value
 
         if current_car_direction == Direction.SOUTH:
-            self.rotate_car_to_direction(Direction.NORTH)
+            #self.rotate_car_to_direction(Direction.NORTH)
             self.direction = Direction.NORTH.value
 
         if current_car_direction == Direction.EAST:
-            self.rotate_car_to_direction(Direction.WEST)
+            #self.rotate_car_to_direction(Direction.WEST)
             self.direction = Direction.WEST.value
 
     def rotate_car_to_direction(self, direction):
@@ -486,13 +474,17 @@ class Car:
 
     def rotateCarToDeg(self, degree, speed, error):
         #print("rotateCarToDeg: rotating from {0}, to {1} ...".format(self.getCarHorizontalAngle(), degree))
-
         starting_angle = self.getCarHorizontalAngle()
+        print("   brrr rotate start, from: " + str(starting_angle) + ", to degree: " + str(degree))
+
+        if starting_angle < 0 and degree == 180:
+            degree = -180
 
         diff = degree - starting_angle
         #if diff > 180:
         #    diff -= 180
         rotateLeft = True
+        
         # + left
         # - right
         if diff > 0:
@@ -505,32 +497,43 @@ class Car:
             speed = -speed
             rotateLeft = not rotateLeft
         
-        # if rotateLeft:
-        #     print("rotateCarToDeg: rotate left")
-        # else:
-        #     print("rotateCarToDeg: rotate right")
+        if rotateLeft:
+            print("rotateCarToDeg: rotate left")
+        else:
+            print("rotateCarToDeg: rotate right")
 
         
         #start rotating
         self.set_wheels_velocity(speed, -speed)
         #print("starting to rotate ...")
-        
+        i = 0
         while(True):
             #self.detect_object(self.sensors[0], 1)
             
             difference = degree - self.getCarHorizontalAngle()
+            if i % 1000 == 0:
+                #print("{1} => difference = {0}".format(difference, i))
+
+            
             if difference > 180:
                 difference -= 360
-            #if difference < 10:
-            #print("difference = {0}".format(difference))
+            
+            if difference < 180:
+                difference += 360
+
+            if i % 1000 == 0:
+                #print("{1} => difference = {0}".format(difference, i))
+
+            i += 1
             if rotateLeft:
                 if difference <= error :
                     self.set_wheels_velocity(0, 0)
+                    print("   brrr rotate finished, difference <= error: " + str(difference) + " <= " + str(error))
                     break
 
-                if difference <= 1:
-                    self.set_wheels_velocity(speed/16, -speed/16)
-                    continue
+                # if difference <= 1:
+                #     self.set_wheels_velocity(speed/16, -speed/16)
+                #     continue
 
                 if difference <= 5:
                     self.set_wheels_velocity(speed/8, -speed/8)
@@ -542,11 +545,12 @@ class Car:
             else:
                 if difference >= -error :
                     self.set_wheels_velocity(0, 0)
+                    print("   brrr rotate finished, difference >= -error: "  + str(difference) + " >= " + str(-error))
                     break
 
-                if difference >= -1:
-                    self.set_wheels_velocity(speed/16, -speed/16)
-                    continue
+                # if difference >= -1:
+                #     self.set_wheels_velocity(speed/16, -speed/16)
+                #     continue
 
                 if difference >= -5:
                     self.set_wheels_velocity(speed/8, -speed/8)
@@ -575,11 +579,12 @@ class Car:
         self.set_wheels_velocity(0, 0)
 
     def goForwardTillSensorDetectMap(self, speed, walldistance, direction):
+        i = 0
         while(True):
             self.get_car_direction()
             self.map.set_values(self.direction, self.sensorDistance(self.leftSensor), self.sensorDistance(self.rightSensor), self.sensorDistance(self.frontSensor))
-            error = self.goForwardMap(5, self.cell_size, 0.001)# car actually travel after 2nd time, dunno why xd
-            if error > -0.001 and error < 0.001:# if actually moved
+            error = self.goForwardMap(speed, self.cell_size, 0.01)# car actually travel after 2nd time, dunno why xd
+            if abs(error) < 0.15:# if actually moved
                 leftSensorDistance = self.sensorDistance(self.leftSensor)
                 rightSensorDistance = self.sensorDistance(self.rightSensor)
                 frontDistance = self.sensorDistance(self.frontSensor) 
@@ -588,24 +593,38 @@ class Car:
                 self.map.update_position(self.direction)
                 self.map.set_values(self.direction, leftSensorDistance, rightSensorDistance, frontDistance)
                 break
-                    
+            else:
+                i += 1
+                print("wrong move, trying again ..." + str(error))
+                if i >= 100:
+                    i = 0
+                    print("ERROR ERROR ERROR ERROR ")
                     
         self.set_wheels_velocity(0, 0)
         return direction
 
     def goForwardMap(self, speed, distance_to_travel, error):
         startingPosition = self.getCarPosition()
+        print("   brrr travel start, from: " + str(startingPosition))
         self.set_wheels_velocity(speed, speed)
         #print("starting to move with speed {0}".format(speed))
         while(True):
+            wall_distance = self.sensorDistance(self.frontSensor)
             newPosition = self.getCarPosition()
             diff = [startingPosition[0] - newPosition[0], startingPosition[1] - newPosition[1]]
             traveled_distance = math.sqrt(diff[0]*diff[0] + diff[1]*diff[1])
+            if self.is_correct(wall_distance) and wall_distance < (0.1):
+                self.set_wheels_velocity(0, 0)
+                print("ABORT MOVEMENT, WALL DETECTED")
+                self.rotate_180()
+                self.goForwardMap(speed, traveled_distance, error)
+                break
             #print(" ... startingPosition= {0}, new = {1}, diff = {2}, d = {3}".format(startingPosition, newPosition, diff, traveled_distance))
             #print(" ... distance_to_travel - traveled_distance = " + str(distance_to_travel - traveled_distance))
             if distance_to_travel - traveled_distance < error :
                 self.set_wheels_velocity(0, 0)
                 #print("stopped, error = {0}".format(traveled_distance - distance_to_travel))
+                print("   brrr travel end, traveled: " + str(traveled_distance))
                 return traveled_distance - distance_to_travel
             if distance_to_travel - traveled_distance < 0.01 :
                 self.set_wheels_velocity(speed/4, speed/4)

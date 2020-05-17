@@ -15,24 +15,48 @@ class Map:
         self.currentPosition = startPos
         #print(self.maze)
 
-    def print_pretty(self):
+    def print_pretty(self, direction):
         print("------------------------")
-        for row in self.maze:
+        y_max, x_max = self.maze.shape
+        for y in range(0, y_max):
             s = "| "
-            for cell in row:
-                if cell == CellType.UNKNOWN.value:
-                    s = s + "? "
-                elif cell == CellType.DISCOVERED.value:
-                    s = s + "+ "
-                elif cell == CellType.BLOCKED.value:
-                    s = s + "# "
-                elif cell == CellType.CLEAR.value:
-                    s = s + ". "
+            for x in range(0, x_max):
+                if x == self.currentPosition[1] and y == self.currentPosition[0]:
+                    if direction == Direction.NORTH.value:
+                        s = s + "^ "
+                    elif direction == Direction.SOUTH.value:
+                        s = s + "V "
+                    elif direction == Direction.WEST.value:
+                        s = s + "< "
+                    elif direction == Direction.EAST.value:
+                        s = s + "> "
                 else:
-                    s = s + "* "
+                    cell = self.maze[y][x]
+                    if cell == CellType.UNKNOWN.value:
+                        s = s + "  "
+                    elif cell == CellType.DISCOVERED.value:
+                        s = s + "* "
+                    elif cell == CellType.BLOCKED.value:
+                        s = s + "# "
+                    elif cell == CellType.CLEAR.value:
+                        s = s + ". "
+                    else:
+                        s = s + "* "
             s = s + "| "
             print(s)
+
         print("------------------------")
+
+    def is_all_discovered(self):
+        y_max, x_max = self.maze.shape
+        for y in range(0, y_max):
+            for x in range(0, x_max):
+                cell = self.maze[y][x]
+                if cell == CellType.CLEAR.value:
+                    return False
+        return True
+
+
 
     def set_forward_value(self, direction):# set forward wall as blocked
         # when go up
@@ -166,7 +190,7 @@ class Map:
                 self.maze[self.currentPosition[0]-1, self.currentPosition[1]] = CellType.BLOCKED.value
            
 
-        self.print_pretty()
+        self.print_pretty(direction)
 
     def check(self, direction_facing, direction_checking):
         cell_value = -1
