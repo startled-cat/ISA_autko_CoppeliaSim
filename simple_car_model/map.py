@@ -25,7 +25,7 @@ class Map:
                     if direction == Direction.NORTH.value:
                         s = s + "^ "
                     elif direction == Direction.SOUTH.value:
-                        s = s + "V "
+                        s = s + "v "
                     elif direction == Direction.WEST.value:
                         s = s + "< "
                     elif direction == Direction.EAST.value:
@@ -35,13 +35,13 @@ class Map:
                     if cell == CellType.UNKNOWN.value:
                         s = s + "  "
                     elif cell == CellType.DISCOVERED.value:
-                        s = s + "o "
+                        s = s + "+ "
                     elif cell == CellType.BLOCKED.value:
-                        s = s + "##"
+                        s = s + "# "
                     elif cell == CellType.CLEAR.value:
                         s = s + ". "
                     else:
-                        s = s + "* "
+                        s = s + "? "
             s = s + "| "
             print(s)
 

@@ -638,12 +638,12 @@ class Car:
             newPosition = self.getCarPosition()
             diff = [startingPosition[0] - newPosition[0], startingPosition[1] - newPosition[1]]
             traveled_distance = math.sqrt(diff[0]*diff[0] + diff[1]*diff[1])
-            if self.is_correct(wall_distance) and wall_distance < (0.1):
+            if self.is_correct(wall_distance) and wall_distance < (self.cell_size_half-0.1):# if too close to wall, stop
                 self.set_wheels_velocity(0, 0)
-                print("ABORT MOVEMENT, WALL DETECTED")
-                self.rotate_180()
-                self.goForwardMap(speed, traveled_distance, error)
-                break
+                #print("ABORT MOVEMENT, WALL DETECTED")
+                #self.rotate_180()
+                #self.goForwardMap(speed, traveled_distance, error)
+                return traveled_distance - distance_to_travel
             #print(" ... startingPosition= {0}, new = {1}, diff = {2}, d = {3}".format(startingPosition, newPosition, diff, traveled_distance))
             #print(" ... distance_to_travel - traveled_distance = " + str(distance_to_travel - traveled_distance))
             if distance_to_travel - traveled_distance < error :
