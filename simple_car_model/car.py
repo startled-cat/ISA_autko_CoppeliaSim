@@ -99,6 +99,9 @@ class Car:
             
             if self.map.is_all_discovered() == True:
                 print("map discovered")
+                self.rotate_180()
+                self.ride_from_point_to_point(self.map.currentPosition, self.map.startPosition)
+                self.ride_from_point_to_point(self.map.startPosition, self.map.endPosition)
                 break
 
             forward = self.map.check(self.direction, Direction.FORWARD)
@@ -702,3 +705,62 @@ class Car:
             print(detectionPoint)
             print(detectionState)
             sim.simxAddStatusbarMessage(self.clientID,'Detected something',sim.simx_opmode_oneshot)
+
+    def ride_from_point_to_point(self, startPoint, endPoint):
+        self.map.path = self.map.astar(startPoint, endPoint)
+        print(startPoint)
+        print(endPoint)
+        self.map.ridingFromPointToPoint = True
+        while True:
+            print("===================================== next iteration:")
+
+            self.get_car_direction()#should not be necesary, bc car should not rotate before
+            
+            print("      decide where to go ")
+            direction_to_go = self.map.check_direction_for_ride(self.direction, endPoint)
+            
+            if self.map.finished_ride() == False:
+                print("Arrived at destination")
+                break
+
+            if direction_to_go == Direction.FORWARD:
+                print("going forward")
+            elif direction_to_go == Direction.BACKWARD:
+                print("going back")
+                self.rotate_180()
+            elif direction_to_go == Direction.LEFT:
+                print("going left")
+                self.rotate_left()
+            elif direction_to_go == Direction.RIGHT:
+                print("going right")
+                self.rotate_right()
+
+            #go
+            self.goForwardRunFromPointToPoint(self.travel_speed, 0.8, self.direction)# will travel by one cell size and also update map after travel
+            self.map.currentPathIndex = self.map.currentPathIndex + 1
+        self.rotate_180()
+
+
+    def goForwardRunFromPointToPoint(self, speed, walldistance, direction):
+        i = 0
+        while(True):
+            self.get_car_direction()
+            error = self.goForwardMap(speed, self.cell_size, 0.01)# car actually travel after 2nd time, dunno why xd
+            if abs(error) < 0.15:# if actually moved    
+                self.get_car_direction()
+                self.map.update_position(self.direction)
+                break
+            else:
+                i += 1
+                print("wrong move, trying again ..." + str(error))
+                if i >= 100:
+                    i = 0
+                    print("ERROR ERROR ERROR ERROR ")
+                    
+        self.set_wheels_velocity(0, 0)
+        return direction
+        
+    def test_ride(self):
+        self.map.set_map_for_testing()
+        self.ride_from_point_to_point(self.map.startPosition, [7, 2])
+        self.ride_from_point_to_point([7, 2], self.map.startPosition)
