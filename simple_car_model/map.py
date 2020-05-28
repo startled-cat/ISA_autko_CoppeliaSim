@@ -1,6 +1,8 @@
 import math
 import numpy as np
 import time
+import random
+import Queue
 
 from node import Node
 from direction import Direction
@@ -9,11 +11,11 @@ from celltype import CellType
 
 class Map:
     # 1 in maze is place where we have been, 2 is place where is wall
-    def __init__(self, width, height, startPos):
+    def __init__(self, height, width, startPos):
         #print("dsdsdsd")
         self.endPosition = [1, 8]
         self.startPosition = list(startPos)
-        self.maze = np.zeros(shape=(width, height))
+        self.maze = np.zeros(shape=(height, width))# y x
         self.maze[startPos[0], startPos[1]] = CellType.CLEAR.value
         self.currentPosition = startPos
         self.ridingFromPointToPoint = False
@@ -22,10 +24,15 @@ class Map:
         #print(self.maze)
 
     def print_pretty(self, direction):
-        print("------------------------")
+        
         y_max, x_max = self.maze.shape
+        top = "  x "
+        for x in range(0, x_max):
+            top = top + str(x) + " "
+        print(top)
+        print("y ---------------------------")
         for y in range(0, y_max):
-            s = "| "
+            s = str(y) + " | "
             for x in range(0, x_max):
                 if x == self.currentPosition[1] and y == self.currentPosition[0]:
                     if direction == Direction.NORTH.value:
@@ -52,6 +59,80 @@ class Map:
             print(s)
 
         print("------------------------")
+
+    def BFGnodeIsGoal(self, point):
+        #node = (x, y)
+        x = point[1]
+        y = point[0]
+
+        if self.maze[y][x] == CellType.CLEAR.value:
+            return True
+        else:
+            return False
+
+    def BFSgetSuccessors(self, current_node):
+        # current_node = [(x, y), direction]
+        clear_adj_nodes = [];
+
+        x = current_node[0][1]
+        y = current_node[0][0]
+        direction = current_node[0][1]
+        #check north
+        if self.maze[y-1][x] != CellType.BLOCKED.value and self.maze[y-1][x] != CellType.UNKNOWN.value:
+            clear_adj_nodes.append([[y-1,x], Direction.NORTH.value])
+        #check south
+        if self.maze[y+1][x] != CellType.BLOCKED.value and self.maze[y+1][x] != CellType.UNKNOWN.value:
+            clear_adj_nodes.append([[y+1, x], Direction.SOUTH.value])
+        #check east
+        if self.maze[y][x+1] != CellType.BLOCKED.value and self.maze[y][x+1] != CellType.UNKNOWN.value:
+            clear_adj_nodes.append([[y, x+1], Direction.EAST.value])
+        #check west
+        if self.maze[y][x-1] != CellType.BLOCKED.value and self.maze[y][x-1] != CellType.UNKNOWN.value:
+            clear_adj_nodes.append([[y, x-1], Direction.WEST.value])
+
+        return clear_adj_nodes
+
+    def BFSpathToClear(self):
+        #from game import Directions
+        #from util import Queue
+
+
+        queue = Queue.Queue()
+        final_path = []# [[(x, y), Direction], ...]
+        visited = []# [(x, y), ...]
+        current_node = [self.currentPosition, self.direction]
+        visited.append(current_node[0])
+
+        for child_node in self.BFSgetSuccessors(current_node) :
+            queue.put([child_node])
+
+        while True:
+            
+
+            path = queue.get()
+            current_node = path[-1]
+            visited.append(current_node[0])
+
+            
+            if self.BFGnodeIsGoal(current_node[0]):
+                final_path = path
+                break
+
+            for child_node in self.BFSgetSuccessors(current_node) :
+                if child_node[0] in visited:
+                    continue
+                else:
+                    new_path = list(path)
+                    new_path.append(child_node)
+                    queue.put(new_path)
+
+            
+        
+        moves_list = []
+        for node in final_path :
+            moves_list.append(node[1])
+        
+        return moves_list
 
     def is_all_discovered(self):
         y_max, x_max = self.maze.shape
@@ -80,6 +161,7 @@ class Map:
             self.maze[self.currentPosition[0], self.currentPosition[1]+1] = CellType.BLOCKED.value
 
     def update_position(self, direction):#moves 'cursor'
+        self.direction = direction
         if direction == Direction.NORTH.value:
             #print("UP")
             self.currentPosition[0] = self.currentPosition[0] - 1
@@ -94,6 +176,7 @@ class Map:
             self.currentPosition[1] = self.currentPosition[1] - 1
 
     def set_values(self, direction, leftSensorDistance, rightSensorDistance, frontSensorDistance):
+        self.direction = direction
         print("Hello Its me, from the other side, updating map ...")
         print("direction = " + str(Direction.get_direction_from_vector(direction)))
         print("leftSensorDistance = " + str(leftSensorDistance))
@@ -299,16 +382,19 @@ class Map:
             [CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value]]
 
     def check_direction_for_ride(self, direction_facing, endingPos):
-        print(self.path)
-        print(self.path[self.currentPathIndex])
+        print("path : " + str(self.path))
+        print("where car at : " + str(self.path[self.currentPathIndex]))
 
         if self.path[self.currentPathIndex][0] == endingPos[0] and self.path[self.currentPathIndex][1] == endingPos[1]:
             self.ridingFromPointToPoint = False
             print("End of journey")
             return
+            
         if direction_facing == Direction.NORTH.value:#facing up
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
                 return Direction.FORWARD
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
+                return Direction.BACKWARD
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
                 return Direction.LEFT
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
@@ -317,6 +403,8 @@ class Map:
         if direction_facing == Direction.SOUTH.value:#facing down
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.FORWARD
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
+                return Direction.BACKWARD
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
                 return Direction.LEFT
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
@@ -325,6 +413,8 @@ class Map:
         if direction_facing == Direction.WEST.value:#facing left
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
                 return Direction.FORWARD
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
+                return Direction.BACKWARD
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.LEFT
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
@@ -333,11 +423,29 @@ class Map:
         if direction_facing == Direction.EAST.value:#facing right
             if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
                 return Direction.FORWARD
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
+                return Direction.BACKWARD
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
                 return Direction.LEFT
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.RIGHT
     
+    # returns random point from map that car can drive to
+    def randomDiscoveredPosition(self):
+        possible_points = []
+        y_max, x_max = self.maze.shape
+        for y in range(0, y_max):
+            for x in range(0, x_max):
+                if self.maze[y][x] == CellType.CLEAR.value or self.maze[y][x] == CellType.DISCOVERED.value:
+                    possible_points.append([y, x])
+
+        if possible_points.__len__() == 0:
+            return None
+        if possible_points.__len__() == 1:
+            return possible_points[0]
+
+        return random.choice(possible_points)
+
     def astar(self, start, end):
         """Returns a list of tuples as a path from the given start to the given end in the given maze"""
         # Create start and end node

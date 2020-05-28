@@ -76,20 +76,48 @@ if clientID!=-1:
     return_value, detectionState, detectionPoint, detectedObjectHandle, detectedSurfaceNormalVector = sim.simxReadProximitySensor(clientID, leftSensorFront, sim.simx_opmode_streaming)
     
     car = Car(sensors, wheels, carBody, clientID)
-    #car.wheels = wheels
-    #car.carBody = carBody
-    #car.sensors = sensors
-    #car.clientID = clientID
+
 
     #car.square()
     #car.run()
     #car.test_ride()
     car.mapping_run()
-    # i = 0
-    # while True:
-    #     print("i = " + str(i))
-    #     car.random_test()
-    #     i += 1
+    print("======================================================")
+    print("============        MAPPING FINISHED         =========")
+    print("======================================================")
+    while True:
+
+        print("what should car do now?")
+        print(" [1] - travel to random point on map")
+        print(" [2] - let me decide where car will travel")
+        print(" [3] - die")
+        print(" [4] - (print map again)")
+
+        menu_choice = input("> ")
+        print("your choice is: " + str(menu_choice))
+
+        if menu_choice == 1:
+            print("brr picking random point from map ...")
+            car.ride_from_point_to_point(car.map.currentPosition, car.map.randomDiscoveredPosition())
+            
+        if menu_choice == 2:
+            print("input desired point coordinates: ")
+            x = input("x => ")
+            y = input("y => ")
+            print("choosen point: x={0}, y={1} ".format(x, y))
+            car.ride_from_point_to_point(car.map.currentPosition, [y, x])
+
+        if menu_choice == 3:
+            print("car is dead :c")
+            break
+
+        if menu_choice == 4:
+            car.map.print_pretty(car.direction)
+
+        else:
+            print("come again?")
+            continue
+    
 
 
     # Before closing the connection to CoppeliaSim, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):

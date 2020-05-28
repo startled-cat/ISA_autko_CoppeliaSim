@@ -97,11 +97,9 @@ class Car:
 
             self.get_car_direction()#should not be necesary, bc car should not rotate before
             
-            if self.map.is_all_discovered() == True:
+            if self.map.is_all_discovered():
                 print("map discovered")
-                self.rotate_180()
-                self.ride_from_point_to_point(self.map.currentPosition, self.map.startPosition)
-                self.ride_from_point_to_point(self.map.startPosition, self.map.endPosition)
+                
                 break
 
             forward = self.map.check(self.direction, Direction.FORWARD)
@@ -111,7 +109,7 @@ class Car:
             print("left        forward         right")
             print(str(left) + " " + str(forward) + " " + str(right))
 
-            print("      decide where to go ")
+            print("decide where to go ")
             direction_to_go = self.choose_direction(left, forward, right)
 
             if direction_to_go == Direction.FORWARD:
@@ -129,76 +127,62 @@ class Car:
             #go
             self.goForwardTillSensorDetectMap(self.travel_speed, 0.8, self.direction)# will travel by one cell size and also update map after travel
             
+
+    def after_mapping(self):
+        self.rotate_180()
+        self.ride_from_point_to_point(self.map.currentPosition, self.map.startPosition)
+        self.ride_from_point_to_point(self.map.startPosition, self.map.endPosition)
+
     def choose_direction(self, left, forward, right):
         direction_to_go = None
-        while True:
-            #
-            #    go to first clear path
-            #
-            print("looking for clear path ...")
+        print("brrr, looking for path to nearest clear point on map ... ")
+        path_to_clear = self.map.BFSpathToClear()
+        print("found path :")
+        for direction in path_to_clear:
+            print(Direction.get_direction_from_vector(direction))
 
-            if forward == CellType.CLEAR and right == CellType.CLEAR and left == CellType.CLEAR:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.RIGHT, Direction.LEFT] )
-                break
+        if path_to_clear[0] == Direction.NORTH.value:# y == 1:#should go north
+            if self.direction == Direction.NORTH.value:
+                return Direction.FORWARD 
+            if self.direction == Direction.SOUTH.value:
+                return Direction.BACKWARD 
+            if self.direction == Direction.WEST.value:
+                return Direction.RIGHT 
+            if self.direction == Direction.EAST.value:
+                return Direction.LEFT 
 
-            if forward == CellType.CLEAR and right == CellType.CLEAR:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.RIGHT] )
-                break
+        if path_to_clear[0] == Direction.SOUTH.value:#y == 0:#should go south
+            if self.direction == Direction.NORTH.value:
+                return Direction.BACKWARD 
+            if self.direction == Direction.SOUTH.value:
+                return Direction.FORWARD 
+            if self.direction == Direction.WEST.value:
+                return Direction.LEFT 
+            if self.direction == Direction.EAST.value:
+                return Direction.RIGHT 
 
-            if forward == CellType.CLEAR and left == CellType.CLEAR:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.LEFT] )
-                break
+        if path_to_clear[0] == Direction.WEST.value:#x == 1:#should go west
+            if self.direction == Direction.NORTH.value:
+                return Direction.LEFT 
+            if self.direction == Direction.SOUTH.value:
+                return Direction.RIGHT 
+            if self.direction == Direction.WEST.value:
+                return Direction.FORWARD 
+            if self.direction == Direction.EAST.value:
+                return Direction.BACKWARD 
 
-            if left == CellType.CLEAR and right == CellType.CLEAR:
-                direction_to_go = random.choice( [Direction.RIGHT, Direction.LEFT] )
-                break
+        if path_to_clear[0] == Direction.EAST.value:#x == 0:#should go east
+            if self.direction == Direction.NORTH.value:
+                return Direction.RIGHT 
+            if self.direction == Direction.SOUTH.value:
+                return Direction.LEFT 
+            if self.direction == Direction.WEST.value:
+                return Direction.BACKWARD 
+            if self.direction == Direction.EAST.value:
+                return Direction.FORWARD 
 
-            if forward == CellType.CLEAR :
-                direction_to_go = Direction.FORWARD
-                break
-            if right == CellType.CLEAR :
-                direction_to_go = Direction.RIGHT
-                break
-            if left == CellType.CLEAR :
-                direction_to_go = Direction.LEFT
-                break
 
-            #   if no clear paths
-            #   go to first discovered path
-            #   TODO: check which DISCOVERED might lead to CLEAR
-            print("looking for discovoerd path ...")
-            if forward == CellType.DISCOVERED and right == CellType.DISCOVERED and left == CellType.DISCOVERED:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.RIGHT, Direction.LEFT] )
-                break
-
-            if forward == CellType.DISCOVERED and right == CellType.DISCOVERED:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.RIGHT] )
-                break
-
-            if forward == CellType.DISCOVERED and left == CellType.DISCOVERED:
-                direction_to_go = random.choice( [Direction.FORWARD, Direction.LEFT] )
-                break
-
-            if left == CellType.DISCOVERED and right == CellType.DISCOVERED:
-                direction_to_go = random.choice( [Direction.RIGHT, Direction.LEFT] )
-                break
-
-            if forward == CellType.DISCOVERED :
-                direction_to_go = Direction.FORWARD
-                break
-            if right == CellType.DISCOVERED :
-                direction_to_go = Direction.RIGHT
-                break
-            if left == CellType.DISCOVERED :
-                direction_to_go = Direction.LEFT
-                break
-
-            #   no clear or discovered path
-            print("going back")
-            direction_to_go = Direction.BACKWARD
-            break
-
-        return direction_to_go
+           
     
     def rotate_left(self):
         current_car_direction = self.get_car_direction()
@@ -716,7 +700,7 @@ class Car:
 
             self.get_car_direction()#should not be necesary, bc car should not rotate before
             
-            print("      decide where to go ")
+            #print("      decide where to go ")
             direction_to_go = self.map.check_direction_for_ride(self.direction, endPoint)
             
             if self.map.finished_ride() == False:
