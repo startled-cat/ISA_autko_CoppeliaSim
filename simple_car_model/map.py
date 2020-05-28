@@ -11,8 +11,8 @@ class Map:
     # 1 in maze is place where we have been, 2 is place where is wall
     def __init__(self, width, height, startPos):
         #print("dsdsdsd")
-        self.endPosition = (1, 8)
-        self.startPosition = startPos
+        self.endPosition = [1, 8]
+        self.startPosition = list(startPos)
         self.maze = np.zeros(shape=(width, height))
         self.maze[startPos[0], startPos[1]] = CellType.CLEAR.value
         self.currentPosition = startPos
@@ -298,41 +298,44 @@ class Map:
             [CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.UNKNOWN.value],
             [CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.UNKNOWN.value]]
 
-    def check_direction_for_ride(self, direction_facing):
-        if self.path[self.currentPathIndex][0] == self.endPosition[0] and self.path[self.currentPathIndex][0] == self.endPosition[1]:
+    def check_direction_for_ride(self, direction_facing, endingPos):
+        print(self.path)
+        print(self.path[self.currentPathIndex])
+
+        if self.path[self.currentPathIndex][0] == endingPos[0] and self.path[self.currentPathIndex][1] == endingPos[1]:
             self.ridingFromPointToPoint = False
             print("End of journey")
             return
         if direction_facing == Direction.NORTH.value:#facing up
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]-1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
                 return Direction.FORWARD
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]-1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
                 return Direction.LEFT
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]+1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
                 return Direction.RIGHT
 
         if direction_facing == Direction.SOUTH.value:#facing down
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]+1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.FORWARD
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]+1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
                 return Direction.LEFT
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]-1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
                 return Direction.RIGHT
 
         if direction_facing == Direction.WEST.value:#facing left
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]-1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]+1:
                 return Direction.FORWARD
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]+1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.LEFT
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]-1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
                 return Direction.RIGHT
 
         if direction_facing == Direction.EAST.value:#facing right
-            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex][1]+1:
+            if self.path[self.currentPathIndex][1] == self.path[self.currentPathIndex+1][1]-1:
                 return Direction.FORWARD
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]-1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]+1:
                 return Direction.LEFT
-            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex][0]+1:
+            if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.RIGHT
     
     def astar(self, start, end):
@@ -378,7 +381,7 @@ class Map:
             for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0)]: # Adjacent squares
 
                 # Get node position
-                node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+                node_position = [current_node.position[0] + new_position[0], current_node.position[1] + new_position[1]]
                 
                 # Make sure within range
                 if node_position[0] > (len(self.maze) - 1) or node_position[0] < 0 or node_position[1] > (len(self.maze[len(self.maze)-1]) -1) or node_position[1] < 0:

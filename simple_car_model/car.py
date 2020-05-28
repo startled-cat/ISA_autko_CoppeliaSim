@@ -708,7 +708,8 @@ class Car:
 
     def ride_from_point_to_point(self, startPoint, endPoint):
         self.map.path = self.map.astar(startPoint, endPoint)
-        print(self.map.path)
+        print(startPoint)
+        print(endPoint)
         self.map.ridingFromPointToPoint = True
         while True:
             print("===================================== next iteration:")
@@ -716,8 +717,8 @@ class Car:
             self.get_car_direction()#should not be necesary, bc car should not rotate before
             
             print("      decide where to go ")
-            direction_to_go = self.map.check_direction_for_ride(self.direction)
-            print(direction_to_go)
+            direction_to_go = self.map.check_direction_for_ride(self.direction, endPoint)
+            
             if self.map.finished_ride() == False:
                 print("Arrived at destination")
                 break
@@ -745,7 +746,9 @@ class Car:
         while(True):
             self.get_car_direction()
             error = self.goForwardMap(speed, self.cell_size, 0.01)# car actually travel after 2nd time, dunno why xd
-            if abs(error) < 0.15:# if actually moved
+            if abs(error) < 0.15:# if actually moved    
+                self.get_car_direction()
+                self.map.update_position(self.direction)
                 break
             else:
                 i += 1
@@ -759,4 +762,5 @@ class Car:
         
     def test_ride(self):
         self.map.set_map_for_testing()
-        self.ride_from_point_to_point(self.map.startPosition, self.map.endPosition)
+        self.ride_from_point_to_point(self.map.startPosition, [7, 2])
+        self.ride_from_point_to_point([7, 2], self.map.startPosition)

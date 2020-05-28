@@ -83,8 +83,8 @@ if clientID!=-1:
 
     #car.square()
     #car.run()
-    car.test_ride()
-    #car.mapping_run()
+    #car.test_ride()
+    car.mapping_run()
     # i = 0
     # while True:
     #     print("i = " + str(i))
