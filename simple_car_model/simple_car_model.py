@@ -13,8 +13,9 @@ import numpy as np
 
 from car import Car
 
+
 try:
-    import sim
+    from api import sim
 except:
     print ('--------------------------------------------------------------')
     print ('"sim.py" could not be imported. This means very probably that')
@@ -23,6 +24,7 @@ except:
     print ('or appropriately adjust the file "sim.py"')
     print ('--------------------------------------------------------------')
     print ('')
+    
 
 
 import time
@@ -73,16 +75,21 @@ if clientID!=-1:
 
     return_value, detectionState, detectionPoint, detectedObjectHandle, detectedSurfaceNormalVector = sim.simxReadProximitySensor(clientID, leftSensorFront, sim.simx_opmode_streaming)
     
-    car = Car()
-    car.wheels = wheels
-    car.carBody = carBody
-    car.sensors = sensors
-    car.clientID = clientID
+    car = Car(sensors, wheels, carBody, clientID)
+    #car.wheels = wheels
+    #car.carBody = carBody
+    #car.sensors = sensors
+    #car.clientID = clientID
 
     #car.square()
     #car.run()
+    
     car.mapping_run()
-
+    # i = 0
+    # while True:
+    #     print("i = " + str(i))
+    #     car.random_test()
+    #     i += 1
 
 
     # Before closing the connection to CoppeliaSim, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
