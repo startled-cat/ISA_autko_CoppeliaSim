@@ -21,7 +21,7 @@ class Car:
 
     def __init__(self, sensors, wheels, carBody, clientID):
         #print("dsdsdsd")
-        self.target_velocity = 1
+        self.target_velocity = 2
         self.stop_velocity = 0
 
         self.turning_speed = 0.5
@@ -29,7 +29,7 @@ class Car:
 
         self.rotation_force = 100
         #self.map = Map(13, 13, [12, 8])#old labirynth01
-        self.map = Map(40, 40, [20, 20])#new labirynth02
+        self.map = Map(20, 20, [18, 1])#new labirynth02
         #self.clientID = 0
 
         self.sensors = sensors
