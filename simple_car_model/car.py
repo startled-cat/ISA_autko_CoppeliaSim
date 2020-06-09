@@ -29,7 +29,7 @@ class Car:
 
         self.rotation_force = 100
         #self.map = Map(13, 13, [12, 8])#old labirynth01
-        self.map = Map(10, 10, [8, 6])#new labirynth02
+        self.map = Map(40, 40, [20, 20])#new labirynth02
         #self.clientID = 0
 
         self.sensors = sensors
