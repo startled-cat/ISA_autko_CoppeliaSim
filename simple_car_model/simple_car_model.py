@@ -81,6 +81,11 @@ if clientID!=-1:
     #car.square()
     #car.run()
     #car.test_ride()
+    #car.map.set_map_for_testing()
+    #car.ride_from_point_to_point(car.map.currentPosition, [1, 8])
+
+
+
     car.mapping_run()
     print("======================================================")
     print("============        MAPPING FINISHED         =========")

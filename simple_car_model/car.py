@@ -41,6 +41,7 @@ class Car:
         self.cell_size_half = 0.5
 
         self.travel_speed = 10
+        self.travel_max_speed = 30
 
         self.rotation_speed = 5
         self.rotation_error = 0.5
@@ -692,18 +693,19 @@ class Car:
 
     def ride_from_point_to_point(self, startPoint, endPoint):
         self.map.path = self.map.astar(startPoint, endPoint)
+        self.map.create_directions_from_path(self.get_car_direction(), endPoint)
         print(startPoint)
         print(endPoint)
         self.map.ridingFromPointToPoint = True
         while True:
             print("===================================== next iteration:")
 
-            self.get_car_direction()#should not be necesary, bc car should not rotate before
+            #self.get_car_direction()#should not be necesary, bc car should not rotate before
             
             #print("      decide where to go ")
-            direction_to_go = self.map.check_direction_for_ride(self.direction, endPoint)
-            
-            if self.map.finished_ride() == False:
+            direction_to_go = self.map.directions[self.map.currentPathIndex]
+            if self.map.check_if_end(endPoint, 0):
+                self.map.currentPosition = endPoint
                 print("Arrived at destination")
                 break
 
@@ -718,18 +720,42 @@ class Car:
             elif direction_to_go == Direction.RIGHT:
                 print("going right")
                 self.rotate_right()
+            
+            distance = self.calculate_distance_from_directions(endPoint)
+            print("Move places forward : " + str(distance))
+            speed = self.travel_speed
+            if distance > 1:
+                speed = self.travel_speed + 5*distance
 
+            if speed > self.travel_max_speed:
+                speed = 30
             #go
-            self.goForwardRunFromPointToPoint(self.travel_speed, 0.8, self.direction)# will travel by one cell size and also update map after travel
-            self.map.currentPathIndex = self.map.currentPathIndex + 1
-        self.rotate_180()
+            self.goForwardRunFromPointToPoint(speed, 0.8, self.direction, distance)# will travel by one cell size and also update map after travel
+            self.map.currentPathIndex = self.map.currentPathIndex + distance
+            self.map.currentPosition = self.map.path[self.map.currentPathIndex-1]
+        #self.rotate_180()
 
+    def calculate_distance_from_directions(self, endPoint):
+        distance = 1
+        offset = 1
 
-    def goForwardRunFromPointToPoint(self, speed, walldistance, direction):
+        while True:
+            if self.map.check_if_end(endPoint, offset):
+                print("Arrived at destination")
+                break
+            if self.map.directions[self.map.currentPathIndex + offset] == Direction.FORWARD:
+                distance = distance + 1
+                offset = offset + 1
+            else:
+                break
+        return distance
+
+    def goForwardRunFromPointToPoint(self, speed, walldistance, direction, distance):
+        print("Traveling speed : " + str(speed))
         i = 0
         while(True):
             self.get_car_direction()
-            error = self.goForwardMap(speed, self.cell_size, 0.01)# car actually travel after 2nd time, dunno why xd
+            error = self.goForwardMap(speed, distance, 0.01)# car actually travel after 2nd time, dunno why xd
             if abs(error) < 0.15:# if actually moved    
                 self.get_car_direction()
                 self.map.update_position(self.direction)

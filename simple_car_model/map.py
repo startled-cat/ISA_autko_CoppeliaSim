@@ -20,6 +20,7 @@ class Map:
         self.currentPosition = startPos
         self.ridingFromPointToPoint = False
         self.path = []
+        self.directions = []
         self.currentPathIndex = 0
         #print(self.maze)
 
@@ -374,8 +375,8 @@ class Map:
             [CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
             [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
             [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
-            [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
-            [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.UNKNOWN.value],
+            [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
+            [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.UNKNOWN.value],
             [CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
             [CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value],
             [CellType.UNKNOWN.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.UNKNOWN.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.DISCOVERED.value, CellType.BLOCKED.value, CellType.BLOCKED.value, CellType.UNKNOWN.value],
@@ -384,6 +385,7 @@ class Map:
     def check_direction_for_ride(self, direction_facing, endingPos):
         print("path : " + str(self.path))
         print("where car at : " + str(self.path[self.currentPathIndex]))
+        print("direction facing : " + str(direction_facing))
 
         if self.path[self.currentPathIndex][0] == endingPos[0] and self.path[self.currentPathIndex][1] == endingPos[1]:
             self.ridingFromPointToPoint = False
@@ -430,6 +432,78 @@ class Map:
             if self.path[self.currentPathIndex][0] == self.path[self.currentPathIndex+1][0]-1:
                 return Direction.RIGHT
     
+    def check_if_end(self, endPoint, offset):
+        if self.path[self.currentPathIndex + offset][0] == endPoint[0] and self.path[self.currentPathIndex + offset][1] == endPoint[1]:
+            self.ridingFromPointToPoint = False
+            return True
+        return False
+
+    def create_directions_from_path(self, initial_direction, endPoint):
+        self.directions = []
+        current_direction = initial_direction.value
+        print(current_direction)
+        self.ridingFromPointToPoint = True
+        while self.finished_ride():
+            direction_to_go = self.check_direction_for_ride(current_direction, endPoint)
+            print(direction_to_go)
+            self.directions.append(direction_to_go)
+            if direction_to_go == Direction.FORWARD:
+                print("Create directions -FORWARD")
+            elif direction_to_go == Direction.BACKWARD:
+                print("Create directions - BACKWARD")
+                current_direction = self.get_direction_backward(current_direction)
+            elif direction_to_go == Direction.LEFT:
+                print("Create directions - LEFT")
+                current_direction = self.get_direction_left(current_direction)
+            elif direction_to_go == Direction.RIGHT:
+                print("Create directions - RIGHT")
+                current_direction = self.get_direction_right(current_direction)
+            self.currentPathIndex = self.currentPathIndex + 1
+        self.currentPathIndex = 0
+        print(self.path)
+        print(self.directions)    
+
+    def get_direction_backward(self, current_car_direction):
+        if current_car_direction == Direction.NORTH.value:
+            return Direction.SOUTH.value
+
+        if current_car_direction == Direction.WEST.value:
+            return Direction.EAST.value
+
+        if current_car_direction == Direction.SOUTH.value:
+            return Direction.NORTH.value
+
+        if current_car_direction == Direction.EAST.value:
+            return Direction.WEST.value
+
+    def get_direction_left(self, current_car_direction):
+
+        if current_car_direction == Direction.NORTH.value:
+            return Direction.WEST.value
+
+        if current_car_direction == Direction.WEST.value:
+            return Direction.SOUTH.value
+
+        if current_car_direction == Direction.SOUTH.value:
+            return Direction.EAST.value
+
+        if current_car_direction == Direction.EAST.value:
+            return Direction.NORTH.value
+
+    def get_direction_right(self, current_car_direction):
+
+        if current_car_direction == Direction.NORTH.value:
+            return Direction.EAST.value
+
+        if current_car_direction == Direction.WEST.value:
+            return Direction.NORTH.value
+
+        if current_car_direction == Direction.SOUTH.value:
+            return Direction.WEST.value
+
+        if current_car_direction == Direction.EAST.value:
+            return Direction.SOUTH.value
+
     # returns random point from map that car can drive to
     def randomDiscoveredPosition(self):
         possible_points = []
