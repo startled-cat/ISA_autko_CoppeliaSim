@@ -439,6 +439,7 @@ class Map:
         return False
 
     def create_directions_from_path(self, initial_direction, endPoint):
+        self.directions = []
         current_direction = initial_direction.value
         print(current_direction)
         self.ridingFromPointToPoint = True

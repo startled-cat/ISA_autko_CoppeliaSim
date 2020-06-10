@@ -705,6 +705,7 @@ class Car:
             #print("      decide where to go ")
             direction_to_go = self.map.directions[self.map.currentPathIndex]
             if self.map.check_if_end(endPoint, 0):
+                self.map.currentPosition = endPoint
                 print("Arrived at destination")
                 break
 
@@ -731,7 +732,8 @@ class Car:
             #go
             self.goForwardRunFromPointToPoint(speed, 0.8, self.direction, distance)# will travel by one cell size and also update map after travel
             self.map.currentPathIndex = self.map.currentPathIndex + distance
-        self.rotate_180()
+            self.map.currentPosition = self.map.path[self.map.currentPathIndex-1]
+        #self.rotate_180()
 
     def calculate_distance_from_directions(self, endPoint):
         distance = 1
